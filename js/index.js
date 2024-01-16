@@ -1,16 +1,4 @@
 $(document).ready(function () {
-  function currentTime() {
-    let time = new Date();
-    let currentHours = time.getHours();
-    let currentMinutes = time.getMinutes();
-    let currentTime = `${currentHours < 10 ? "0" : ""}${currentHours}:${
-      currentMinutes < 10 ? "0" : ""
-    }${currentMinutes}`;
-    $("#nav-time").text(currentTime);
-  }
-  currentTime();
-
-  // **************************************
   const data = [
     {
       name: "php",
@@ -73,9 +61,44 @@ $(document).ready(function () {
       id: 12,
     },
   ];
+
+  function currentTime() {
+    let time = new Date();
+    let currentHours = time.getHours();
+    let currentMinutes = time.getMinutes();
+    let currentTime = `${currentHours < 10 ? "0" : ""}${currentHours}:${
+      currentMinutes < 10 ? "0" : ""
+    }${currentMinutes}`;
+    $("#nav-time").text(currentTime);
+  }
+  currentTime();
+
+  let startTime;
+
+  function updateTime() {
+    if (state.totalTime) {
+      const currentTime = new Date().getTime();
+      const elapsedTime = new Date(currentTime - startTime);
+      const minutes = elapsedTime.getMinutes();
+      const seconds = elapsedTime.getSeconds();
+
+      const formattedTime = `${minutes < 10 ? "0" : ""}${minutes}:${
+        seconds < 10 ? "0" : ""
+      }${seconds}`;
+
+      $("#play-time").text(`${formattedTime}`);
+      setTimeout(updateTime, 1000);
+    }
+  }
+  // flip counter change vale in html el
+  const flips = () => {
+    totalFlips.text(`FLIPS ${state.totalFlips}`);
+  };
+  // **************************************
+  // selectors
   const gameWrapper = $(".game-wrapper");
   const totalFlips = $("#total-flips");
-
+  // shuffle array from data
   const shuffle = (array) => {
     const newArray = [...array];
 
@@ -88,22 +111,39 @@ $(document).ready(function () {
     }
     return newArray;
   };
-  const shuffledData = shuffle([...data, ...data]);
 
+  let shuffledData = shuffle([...data, ...data]);
+  // states of game, use it for start/stop game, timer, flips count
   const state = {
     gameStarted: false,
     flippedCards: 0,
     totalFlips: 0,
-    totalTime: 0,
+    totalTime: false,
     guessed: 0,
   };
+  // buttons in nav
   $("#start-game").click(function () {
-    if (!state.gameStarted) {
+    if (!state.totalTime & !state.gameStarted) {
+      state.totalTime = true;
+      startTime = new Date().getTime();
+      updateTime();
       state.gameStarted = true;
       eventHandler();
     }
   });
-
+  // stop-game btn use for restart game(delete cards, shuffle data again, and place new cards in el),stop timer
+  $("#stop-game").click(function () {
+    shuffledData = shuffle([...data, ...data]);
+    if (state.gameStarted) {
+      gameWrapper.empty();
+      renderCards(shuffledData);
+      state.totalTime = false;
+      state.gameStarted = false;
+      state.totalFlips = 0;
+      flips();
+    }
+  });
+  // create and render cards in html
   const createCard = (item) => {
     return `<div class='card' data-key=${item.id}>
   <div class="card-front"></div>
@@ -116,19 +156,15 @@ $(document).ready(function () {
     gameWrapper.append(cardsHtml);
   };
 
-  const flips = () => {
-    totalFlips.text(state.totalFlips);
-  };
-
   const checkForWin = () => {
     console.log(state.guessed);
     if (state.guessed === shuffledData.length) {
-      const modalWin = $(`<div class="modal-win"><h2>Pobedili ste</h2></div>`);
+      const modalWin = $(`<div class="modal-win"><h2>You won!</h2></div>`);
       gameWrapper.append(modalWin);
       state.gameStarted(false);
     }
   };
-
+  // click handler, rotate card, check key value, add class if match
   const eventHandler = () => {
     let firstKey = null;
     $(".card").click(function (e) {
