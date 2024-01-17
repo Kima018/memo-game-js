@@ -1,0 +1,4 @@
+/prepraviti win modal(best score, nick name,best time)
+/best score upisti u localstorage, logiga da proveri localstorage da li postoji best score
+/mozda napraviti objekat bestResults = {nick:,bestRes:,BestTime:,}/upisati ga u local storage
+/logika da se odabere nivo(easy, medin, hard)/ da fetchuje 6 8 ili 12 kartica iz niza?

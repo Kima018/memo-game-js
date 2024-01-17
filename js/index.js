@@ -113,6 +113,41 @@ $(document).ready(function () {
   };
 
   let shuffledData = shuffle([...data, ...data]);
+
+  let userResults = {
+    nick: "",
+    bestTime: null,
+    bestResult: 0,
+  };
+
+  const getDataFromLocalStorage = () => {
+    return new Promise((resolve, reject) => {
+      const getUserResultJSON = localStorage.getItem("userResult");
+      if (getUserResultJSON) {
+        const user = JSON.parse(getUserResultJSON);
+        resolve(user);
+      } else {
+        reject('Nema objekata u localStorage pod kljucem "useResault".');
+      }
+    });
+  };
+
+  const getData = async () => {
+    try {
+      const user = await getDataFromLocalStorage();
+      userResults = user;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  getData();
+
+  const setDataToLocalStorage = () => {
+    const userJSON = JSON.stringify(userResults);
+    localStorage.setItem("userResult", userJSON);
+  };
+  // setDataToLocalStorage();
+
   // states of game, use it for start/stop game, timer, flips count
   const state = {
     gameStarted: false,
@@ -157,13 +192,23 @@ $(document).ready(function () {
   };
 
   const checkForWin = () => {
-    console.log(state.guessed);
     if (state.guessed === shuffledData.length) {
-      const modalWin = $(`<div class="modal-win"><h2>You won!</h2></div>`);
+      const modalWin = $(`<div class="modal-win">
+      <img src="icons/crowns.png" alt="crowns" />
+      <h2>You won!</h2>
+      <div class="mt-auto">
+        <p id="best-score">best score: 13</p>
+        <p id="best-time">best time: 3:14</p>
+      </div>
+    </div>`);
       gameWrapper.append(modalWin);
-      state.gameStarted(false);
+      state.gameStarted = false;
     }
   };
+
+  // skloniti posle
+  // checkForWin();
+  // *************
   // click handler, rotate card, check key value, add class if match
   const eventHandler = () => {
     let firstKey = null;
