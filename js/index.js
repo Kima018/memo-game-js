@@ -88,6 +88,8 @@ $(document).ready(function () {
 
       $("#play-time").text(`${formattedTime}`);
       setTimeout(updateTime, 1000);
+    } else {
+      $("#play-time").text("00:00");
     }
   }
   // flip counter change vale in html el
@@ -98,6 +100,7 @@ $(document).ready(function () {
   // selectors
   const gameWrapper = $(".game-wrapper");
   const totalFlips = $("#total-flips");
+  const WinModal = $(".win-modal");
   // shuffle array from data
   const shuffle = (array) => {
     const newArray = [...array];
@@ -120,6 +123,21 @@ $(document).ready(function () {
     bestResult: 0,
   };
 
+  // states of game, use it for start/stop game, timer, flips count
+  let state = {
+    gameStarted: false,
+    flippedCards: 0,
+    totalFlips: 0,
+    totalTime: false,
+    guessed: 0,
+  };
+
+  const setDataToLocalStorage = () => {
+    const userJSON = JSON.stringify(userResults);
+    localStorage.setItem("userResult", userJSON);
+  };
+
+  // get and set data from localStorage (async)
   const getDataFromLocalStorage = () => {
     return new Promise((resolve, reject) => {
       const getUserResultJSON = localStorage.getItem("userResult");
@@ -127,7 +145,7 @@ $(document).ready(function () {
         const user = JSON.parse(getUserResultJSON);
         resolve(user);
       } else {
-        reject('Nema objekata u localStorage pod kljucem "useResault".');
+        reject(alert('Nema objekata u localStorage pod kljucem "useResault".'));
       }
     });
   };
@@ -140,43 +158,39 @@ $(document).ready(function () {
       console.log(error);
     }
   };
-  getData();
 
-  const setDataToLocalStorage = () => {
-    const userJSON = JSON.stringify(userResults);
-    localStorage.setItem("userResult", userJSON);
+  if (localStorage.getItem("userResult") !== null) {
+    getData();
+  } else {
+    setDataToLocalStorage();
+  }
+  // restet game use for restart game(delete cards, shuffle data again, and place new cards in el),stop timer
+  const ResetGame = () => {
+    state.totalTime = false;
+    state.gameStarted = false;
+    state.totalFlips = 0;
+    state.guessed = 0;
+    shuffledData = shuffle([...data, ...data]);
+    gameWrapper.empty();
+    renderCards(shuffledData);
+    WinModal.remove();
+    flips();
   };
-  // setDataToLocalStorage();
 
-  // states of game, use it for start/stop game, timer, flips count
-  const state = {
-    gameStarted: false,
-    flippedCards: 0,
-    totalFlips: 0,
-    totalTime: false,
-    guessed: 0,
-  };
   // buttons in nav
   $("#start-game").click(function () {
     if (!state.totalTime & !state.gameStarted) {
       state.totalTime = true;
+      state.gameStarted = true;
+      state.totalFlips = 0;
       startTime = new Date().getTime();
       updateTime();
-      state.gameStarted = true;
       eventHandler();
     }
   });
   // stop-game btn use for restart game(delete cards, shuffle data again, and place new cards in el),stop timer
   $("#stop-game").click(function () {
-    shuffledData = shuffle([...data, ...data]);
-    if (state.gameStarted) {
-      gameWrapper.empty();
-      renderCards(shuffledData);
-      state.totalTime = false;
-      state.gameStarted = false;
-      state.totalFlips = 0;
-      flips();
-    }
+    ResetGame();
   });
   // create and render cards in html
   const createCard = (item) => {
@@ -193,22 +207,33 @@ $(document).ready(function () {
 
   const checkForWin = () => {
     if (state.guessed === shuffledData.length) {
-      const modalWin = $(`<div class="modal-win">
+      state.gameStarted = false;
+      state.totalTime = false;
+      let score;
+
+      if (userResults.bestResult === 0) {
+        userResults.bestResult = state.totalFlips;
+        setDataToLocalStorage();
+      }
+      if (state.totalFlips < userResults.bestResult) {
+        score = state.totalFlips;
+        userResults.bestResult = state.totalFlips;
+        setDataToLocalStorage();
+      } else if (state.totalFlips >= userResults.bestResult) {
+        score = userResults.bestResult;
+      }
+      modalWin = $(`<div class="modal-win">
       <img src="icons/crowns.png" alt="crowns" />
       <h2>You won!</h2>
       <div class="mt-auto">
-        <p id="best-score">best score: 13</p>
-        <p id="best-time">best time: 3:14</p>
+        <p id="best-score">best score: ${score}</p>
+        
       </div>
     </div>`);
       gameWrapper.append(modalWin);
-      state.gameStarted = false;
     }
   };
 
-  // skloniti posle
-  // checkForWin();
-  // *************
   // click handler, rotate card, check key value, add class if match
   const eventHandler = () => {
     let firstKey = null;

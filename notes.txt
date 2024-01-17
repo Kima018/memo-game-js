@@ -2,3 +2,34 @@
 /best score upisti u localstorage, logiga da proveri localstorage da li postoji best score
 /mozda napraviti objekat bestResults = {nick:,bestRes:,BestTime:,}/upisati ga u local storage
 /logika da se odabere nivo(easy, medin, hard)/ da fetchuje 6 8 ili 12 kartica iz niza?
+
+
+
+
+
+****************************************
+
+
+const checkForWin = () => {
+    if (state.guessed === shuffledData.length) {
+
+let score
+
+      if(state.totalFlips < userResult.bestResults){
+ score = state.totalFlips
+
+}else if(state.totalFlips >= userResult.bestResults){
+score = userResult.bestResults
+}
+      const modalWin = $(`<div class="modal-win">
+      <img src="icons/crowns.png" alt="crowns" />
+      <h2>You won!</h2>
+      <div class="mt-auto">
+        <p id="best-score">best score: ${score}</p>
+        <p id="best-time">best time: 3:14</p>
+      </div>
+    </div>`);
+      gameWrapper.append(modalWin);
+      state.gameStarted = false;
+    }
+  };
