@@ -61,7 +61,8 @@ $(document).ready(function () {
       id: 12,
     },
   ];
-
+  // **************************************
+  // time and timer functions
   function currentTime() {
     let time = new Date();
     let currentHours = time.getHours();
@@ -71,10 +72,9 @@ $(document).ready(function () {
     }${currentMinutes}`;
     $("#nav-time").text(currentTime);
   }
-  currentTime();
+  setInterval(currentTime, 1000);
 
   let startTime;
-
   function updateTime() {
     if (state.totalTime) {
       const currentTime = new Date().getTime();
@@ -101,6 +101,7 @@ $(document).ready(function () {
   const gameWrapper = $(".game-wrapper");
   const totalFlips = $("#total-flips");
   const WinModal = $(".win-modal");
+
   // shuffle array from data
   const shuffle = (array) => {
     const newArray = [...array];
@@ -117,6 +118,7 @@ $(document).ready(function () {
 
   let shuffledData = shuffle([...data, ...data]);
 
+  // use this for localStorage data
   let userResults = {
     nick: "",
     bestTime: null,
@@ -131,13 +133,13 @@ $(document).ready(function () {
     totalTime: false,
     guessed: 0,
   };
+  // set and get data to/from localStorage (async)
 
   const setDataToLocalStorage = () => {
     const userJSON = JSON.stringify(userResults);
     localStorage.setItem("userResult", userJSON);
   };
 
-  // get and set data from localStorage (async)
   const getDataFromLocalStorage = () => {
     return new Promise((resolve, reject) => {
       const getUserResultJSON = localStorage.getItem("userResult");
@@ -164,6 +166,8 @@ $(document).ready(function () {
   } else {
     setDataToLocalStorage();
   }
+  // **************************************
+
   // restet game use for restart game(delete cards, shuffle data again, and place new cards in el),stop timer
   const ResetGame = () => {
     state.totalTime = false;
